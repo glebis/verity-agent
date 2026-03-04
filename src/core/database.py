@@ -252,6 +252,18 @@ async def init_database() -> None:
             except Exception:
                 pass  # already exists
 
+    # Migrate: add topics_sessions_enabled column if missing
+    async with _engine.begin() as conn:
+        try:
+            await conn.execute(
+                text(
+                    "ALTER TABLE chats ADD COLUMN topics_sessions_enabled BOOLEAN NOT NULL DEFAULT 0"
+                )
+            )
+            logger.info("Added topics_sessions_enabled column to chats table")
+        except Exception:
+            pass  # already exists
+
     # Migrate: copy user_settings rows into context-specific tables (#222)
     await _migrate_split_settings(_engine)
 
